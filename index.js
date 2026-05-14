@@ -12,7 +12,7 @@ app.use(express.json());
 // CONFIG
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const cloudAI = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const LOCAL_AI_URL = process.env.LOCAL_AI_URL || 'http://localhost:11434/api/generate';
+const LOCAL_AI_URL = process.env.LOCAL_AI_URL || (process.env.OLLAMA_HOST ? `${process.env.OLLAMA_HOST}/api/generate` : 'http://localhost:11434/api/generate');
 
 /**
  * SHIVAI AI ORCHESTRATOR (PGS-1)
