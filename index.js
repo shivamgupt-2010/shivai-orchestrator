@@ -46,13 +46,15 @@ async function getAIResponse(prompt, taskType = 'general', useLocal = true) {
         console.log("Local AI offline. System running on Neural Fallback.");
     }
 
-    // FINAL FALLBACK: Local Intelligent Logic (Deterministically intelligent for demo/production stability)
+    // FINAL FALLBACK: Local Intelligent Logic
+    const timestamp = new Date().toLocaleTimeString();
     if (taskType === 'summarization') {
-        return "Summary: This asset contains critical ecosystem data, automatically indexed and secured by ShivAI. | Tags: Ecosystem, Data, Secure, Neural, Asset";
+        return `Summary: This asset (${prompt.split('Name: ')[1]?.split(',')[0] || 'Neural Asset'}) was indexed at ${timestamp}. It contains ecosystem data secured by ShivAI. | Tags: Ecosystem, Neural, Data, ${prompt.split('Type: ')[1]?.split('.')[0] || 'Asset'}`;
     }
     if (taskType === 'workspace') {
+        const projectName = prompt.match(/\[(.*?)\]/)?.[1]?.split(',')[0] || "Neural Project";
         return JSON.stringify({
-            name: "Neural Project Alpha",
+            name: `${projectName} Workspace`,
             goal: "Synchronize distributed ecosystem intelligence into a unified execution framework.",
             roadmap: ["Neural Pattern Analysis", "Ecosystem Interconnect Verification", "Autonomous Action Deployment"]
         });
