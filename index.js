@@ -176,5 +176,15 @@ app.post('/generate-workspace', async (req, res) => {
     }
 });
 
+// 5. Root / Health Check
+app.get('/', (req, res) => {
+    res.json({ status: 'active', system: 'ShivAI Orchestrator', version: '1.0.0' });
+});
+
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`ShivAI AI Orchestrator running on port ${PORT}`));
+
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => console.log(`ShivAI AI Orchestrator running on port ${PORT}`));
+}
+
+module.exports = app;
