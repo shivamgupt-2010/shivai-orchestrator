@@ -154,13 +154,39 @@ app.post('/generate-workspace', async (req, res) => {
     const { folderId, userId } = req.body;
     
     try {
-        const { data: files } = await supabase.from('drive_files').select('*').eq('folder_id', folderId);
+        let query = supabase.from('drive_files').select('name').eq('user_id', userId).eq('is_deleted', false);
+        
+        if (folderId === 'root' || !folderId) {
+            query = query.is('folder_id', null);
+        } else {
+            query = query.eq('folder_id', folderId);
+        }
+
+        const { data: files, error } = await query;
+        if (error) throw error;
+
+        if (!files || files.length === 0) {
+            return res.json({
+                name: "New Project",
+                goal: "Start by uploading files to this workspace.",
+                roadmap: ["Upload Assets", "Neural Indexing", "Ecosystem Integration"]
+            });
+        }
+
         const fileList = files.map(f => f.name).join(', ');
 
-        const prompt = `Based on these files in a project: [${fileList}], suggest a project name, a roadmap of 3 steps, and a primary goal. format JSON: { name: "", goal: "", roadmap: ["","",""] }`;
+        const prompt = `Based on these files in a project: [${fileList}], suggest a project name, a roadmap of 3 steps, and a primary goal. format strictly as JSON: { "name": "", "goal": "", "roadmap": ["","",""] }`;
         const aiOutput = await getAIResponse(prompt, 'workspace');
         
-        const config = JSON.parse(aiOutput);
+        let config;
+        try {
+            config = JSON.parse(aiOutput);
+        } catch (e) {
+            // Manual extraction if AI didn't return clean JSON
+            const match = aiOutput.match(/\{.*\}/s);
+            if (match) config = JSON.parse(match[0]);
+            else throw new Error("AI returned invalid JSON: " + aiOutput);
+        }
 
         // Create Insight
         await supabase.from('ai_insights').insert({
@@ -172,6 +198,7 @@ app.post('/generate-workspace', async (req, res) => {
 
         res.json(config);
     } catch (err) {
+        console.error("Workspace Error:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
